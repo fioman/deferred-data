@@ -27,6 +27,7 @@ func TestLocalDeferred(t *testing.T) {
 		}()
 
 		go func() {
+			// 至少要 1 秒后，确保先 await 再 resolve
 			time.Sleep(time.Duration(1+rand.Intn(3)) * time.Second)
 			deferred.Resolve(ticket, idx)
 		}()
