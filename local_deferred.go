@@ -1,6 +1,7 @@
 package deferred
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/reugn/async"
@@ -19,22 +20,26 @@ func NewLocalDeferred[T any]() Deferred[T] {
 	}
 }
 
-func (d *LocalDeferred[T]) Resolve(ticket string, value T) {
+func (d *LocalDeferred[T]) Resolve(ticket string, value T) error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	if promise, ok := d.promisesMap[ticket]; ok {
 		promise.Success(value)
 		delete(d.promisesMap, ticket)
+		return nil
 	}
+	return errors.New("ticket's promise not found")
 }
 
-func (d *LocalDeferred[T]) Reject(ticket string, err error) {
+func (d *LocalDeferred[T]) Reject(ticket string, err error) error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	if promise, ok := d.promisesMap[ticket]; ok {
 		promise.Failure(err)
 		delete(d.promisesMap, ticket)
+		return nil
 	}
+	return errors.New("ticket's promise not found")
 }
 
 func (d *LocalDeferred[T]) Await(ticket string) (value T, err error) {
